@@ -11,8 +11,16 @@ mod.setting(
     "tmux_prefix_key",
     type=str,
     default="ctrl-b",
-    desc="The key used to prefix all tmux commands",
+    desc="Tmux prefix key option, if change like `set-option -g prefix C-b`",
 )
+
+mod.setting(
+    "tmux_command_key",
+    type=str,
+    default=":",
+    desc="The key used after the tmux prefix to enter commands (bound to `command-prompt`)",
+)
+
 
 
 @mod.action_class
@@ -28,7 +36,7 @@ class TmuxActions:
 
     def tmux_enter_command(command: str = ""):
         """Enter tmux command mode and optionally insert a command without executing it."""
-        actions.user.tmux_keybind(":")
+        actions.user.tmux_keybind(settings.get("user.tmux_command_key"))
         actions.insert(command)
 
     def tmux_execute_command(command: str):

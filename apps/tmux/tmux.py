@@ -11,8 +11,48 @@ mod.setting(
     "tmux_prefix_key",
     type=str,
     default="ctrl-b",
-    desc="The key used to prefix all tmux commands",
+    desc="Tmux prefix key option, if change like `set-option -g prefix C-b`",
 )
+
+mod.setting(
+    "tmux_command_key",
+    type=str,
+    default=":",
+    desc="The key used after the tmux prefix to enter commands (bound to `command-prompt`)",
+)
+
+TMUX_DEFAULT_BINDINGS = {
+    # Window Management
+    "new-window": "c",
+    "kill-window": "&",
+    "rename-window": ",",
+    "previous-window": "p",
+    "next-window": "n",
+    "last-window": "l",
+    "find-window": "f",
+    "choose-tree -w": "w",
+    # Pane Management
+    "split-window -h": "%",
+    "split-window -v": '"',
+    "kill-pane": "x",
+    "break-pane": "!",
+    "resize-pane -Z": "z",
+    "display-panes": "q",
+    "swap-pane -U": "{",
+    "swap-pane -D": "}",
+    # Session Management
+    "choose-tree -s": "s",
+    "rename-session": "$",
+    "switch-client -p": "(",
+    "switch-client -n": ")",
+    "detach-client": "d",
+    # Copy & Buffers
+    "copy-mode": "[",
+    "paste-buffer": "]",
+    "choose-buffer": "=",
+    # Misc
+    "clock-mode": "t",
+}
 
 
 @mod.action_class
@@ -28,7 +68,7 @@ class TmuxActions:
 
     def tmux_enter_command(command: str = ""):
         """Enter tmux command mode and optionally insert a command without executing it."""
-        actions.user.tmux_keybind(":")
+        actions.user.tmux_keybind(settings.get("user.tmux_command_key"))
         actions.insert(command)
 
     def tmux_execute_command(command: str):
@@ -43,6 +83,15 @@ class TmuxActions:
             f'confirm-before -p "{confirmation_prompt} (y/n)" {command}'
         )
         actions.key("\n")
+
+    def tmux_direction_flag(arrow_key: str) -> str:
+        """Map arrow key to tmux direction flag (-U, -D, -L, -R)"""
+        return {
+            "up": "-U",
+            "down": "-D",
+            "left": "-L",
+            "right": "-R",
+        }.get(arrow_key, "")
 
 
 ctx = Context()

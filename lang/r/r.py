@@ -1,4 +1,4 @@
-from talon import Context, Module, actions, settings
+from talon import Context, actions, settings
 
 from ..tags.operators import Operators
 
@@ -120,6 +120,12 @@ class UserActions:
 
     def code_insert_null():
         actions.insert("NULL")
+
+    def code_insert_is_null():
+        actions.user.insert_between("is.null(", ")")
+
+    def code_insert_is_not_null():
+        actions.user.insert_between("!is.null(", ")")
 
     def code_insert_is_null():
         actions.user.insert_between("is.null(", ")")

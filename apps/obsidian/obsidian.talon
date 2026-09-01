@@ -46,7 +46,7 @@ file open folder: user.obsidian("open-with-default-app:show")
 file open default app: user.obsidian("open-with-default-app:open")
 file export pdf: user.obsidian("workspace:export-pdf")
 file copy path: user.obsidian("workspace:copy-path")
-file copy full path: user.obsidian("workspace:copy-full-path")
+file copy full [path]: user.obsidian("workspace:copy-full-path")
 file copy url: user.obsidian("workspace:copy-url")
 
 # daily notes
@@ -60,8 +60,8 @@ link open: user.obsidian("editor:open-link-in-new-leaf")
 link split: user.obsidian("editor:open-link-in-new-split")
 
 tab pin: user.obsidian("workspace:toggle-pin")
-close other tabs: user.obsidian("workspace:close-others")
-close tabs group: user.obsidian("workspace:close-tab-group")
+tab close other: user.obsidian("workspace:close-others")
+tab close group: user.obsidian("workspace:close-tab-group")
 
 # outline and backlinks
 outline open: user.obsidian("outline:open-for-current")

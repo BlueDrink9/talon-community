@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Optional
 
 from talon import Context, actions
 
@@ -153,7 +154,7 @@ class Actions:
     def cut_line():
         normal_cmd("c c")
 
-    def get_simple_edit_action_callback(action_type: str) -> Callable | None:
+    def get_simple_edit_action_callback(action_type: str) -> Optional[Callable]:
         """Convert a edit action type created from a string into its associated Callback.
         If it can't find one in this file, it will try the next most specific community version
         """
@@ -164,7 +165,7 @@ class Actions:
 
     def get_compound_edit_action_modifier_callback(
         pair: tuple[str, str],
-    ) -> Callable | None:
+    ) -> Optional[Callable]:
         return (
             custom_callbacks.get(pair)
             or compound_actions.get(pair)

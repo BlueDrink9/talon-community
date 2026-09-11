@@ -196,7 +196,10 @@ def warn_about_error(message: str):
     actions.app.notify(message)
     print(message)
 
-def parse_snippet_dirs(raw_setting: str | None, base_dir: Path | None = None) -> list[Path]:
+
+def parse_snippet_dirs(
+    raw_setting: str | None, base_dir: Path | None = None
+) -> list[Path]:
     """Parses a pipe-separated string of directories into resolved Path objects."""
     if not raw_setting or not raw_setting.strip():
         return []

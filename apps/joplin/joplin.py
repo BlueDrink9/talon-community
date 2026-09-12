@@ -1,7 +1,7 @@
 from talon import Context, Module, actions, app
+
 from ...core.command_client.command_client import run_command
 from ...core.command_client.rpc_client.types import NoFileServerException
-
 
 is_mac = app.platform == "mac"
 
@@ -352,7 +352,6 @@ class EditActions:
 
 @ctx.action_class("user")
 class UserActions:
-
     def command_server_directory() -> str:
         return "joplin-command-server"
 

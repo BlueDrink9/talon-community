@@ -46,7 +46,7 @@ file open folder: user.obsidian("open-with-default-app:show")
 file open default app: user.obsidian("open-with-default-app:open")
 file export pdf: user.obsidian("workspace:export-pdf")
 file copy path: user.obsidian("workspace:copy-path")
-file copy full [path]: user.obsidian("workspace:copy-full-path")
+file copy full path: user.obsidian("workspace:copy-full-path")
 file copy url: user.obsidian("workspace:copy-url")
 
 # daily notes

@@ -15,18 +15,18 @@ DecoratorT = Callable[[CallbackT], CallbackT]
 
 
 @dataclass
-class TrackedCsv:
+class RegisteredCsv:
     headers: tuple[str, str]
     is_spoken_form_first: bool
     private: bool
     callback_fn: CallbackT
 
 
-# Keep track of CSV files tracked by track_csv_list
-tracked_csvs: dict[str, TrackedCsv] = {}
+# Keep track of CSV files tracked by register_settings_csv
+registered_csvs: dict[str, RegisteredCsv] = {}
 
 
-def track_csv_list(
+def register_settings_csv(
     filename: str,
     headers: tuple[str, str],
     default: Optional[dict[str, str]] = None,
@@ -43,7 +43,7 @@ def track_csv_list(
         # Might not have loaded settings yet if this is called from a watch decorator.
         app.register(
             "ready",
-            lambda: track_csv_list(
+            lambda: register_settings_csv(
                 filename, headers, default, is_spoken_form_first, private
             ),
         )
@@ -68,8 +68,8 @@ def track_csv_list(
             )
 
     def decorator(fn: CallbackT) -> CallbackT:
-        if filename not in tracked_csvs:
-            tracked_csvs[filename] = TrackedCsv(
+        if filename not in registered_csvs:
+            registered_csvs[filename] = RegisteredCsv(
                 headers, is_spoken_form_first, private, callback_fn=fn
             )
         for path in paths:
@@ -95,10 +95,10 @@ def reload_on_change(path: Path, setting_csv_filename: str):
 
 
 def load_settings_values(setting_csv_filename):
-    if setting_csv_filename not in tracked_csvs:
+    if setting_csv_filename not in registered_csvs:
         # Shouldn't ever happen, because to get here you should have been tracked, but if it does let's not crash.
         return
-    entry = tracked_csvs[setting_csv_filename]
+    entry = registered_csvs[setting_csv_filename]
     core_path, paths = get_settings_csv_paths(setting_csv_filename, entry.private)
     data = {}
     paths = [p for p in paths if p.exists()]

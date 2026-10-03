@@ -12,7 +12,7 @@ from talon.grammar import Phrase
 from ..user_settings import (
     append_to_csv,
     needs_final_newline,
-    track_csv_list,
+    register_settings_csv,
 )
 
 mod = Module()
@@ -120,7 +120,7 @@ phrase_replacer = PhraseReplacer()
 # implementation of `dictate.replace_words` (at bottom of file) to rewrite words
 # and phrases Talon recognized. This does not change the priority with which
 # Talon recognizes particular phrases over others.
-@track_csv_list(
+@register_settings_csv(
     "words_to_replace.csv",
     headers=("Replacement", "Original"),
     default=_word_map_defaults,

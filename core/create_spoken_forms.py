@@ -10,8 +10,8 @@ from talon import Module, actions
 from .keys.symbols import symbols_for_create_spoken_forms
 from .numbers.numbers import digits_map, scales, teens, tens
 from .user_settings import (
+    register_settings_csv,
     setting_directory_documentation,
-    track_csv_list,
 )
 
 mod = Module()
@@ -58,7 +58,7 @@ def update_regex():
 update_regex()
 
 
-@track_csv_list("file_extensions.csv", headers=("File extension", "Name"))
+@register_settings_csv("file_extensions.csv", headers=("File extension", "Name"))
 def on_extensions(values):
     global FILE_EXTENSIONS_REGEX
     global file_extensions
@@ -72,7 +72,7 @@ def on_extensions(values):
 abbreviations_list = {}
 
 
-@track_csv_list("abbreviations.csv", headers=("Abbreviation", "Spoken Form"))
+@register_settings_csv("abbreviations.csv", headers=("Abbreviation", "Spoken Form"))
 def on_abbreviations(values):
     global abbreviations_list
     abbreviations_list = values

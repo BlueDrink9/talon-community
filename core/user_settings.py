@@ -1,9 +1,10 @@
 import csv
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import IO, Optional, Union
 
-from talon import actions, resource, settings
+from talon import actions, app, resource, settings
 
 # NOTE: This method requires this module to be one folder below the top-level
 #   community folder.
@@ -13,10 +14,114 @@ CallbackT = Callable[[dict[str, str]], None]
 DecoratorT = Callable[[CallbackT], CallbackT]
 
 
+@dataclass
+class TrackedCsv:
+    headers: tuple[str, str]
+    is_spoken_form_first: bool
+    private: bool
+    callback_fn: CallbackT
+
+
+# Keep track of CSV files tracked by track_csv_list
+tracked_csvs: dict[str, TrackedCsv] = {}
+
+
+def track_csv_list(
+    filename: str,
+    headers: tuple[str, str],
+    default: Optional[dict[str, str]] = None,
+    is_spoken_form_first: bool = False,
+    private: bool = False,
+) -> DecoratorT:
+    """
+    Register a csv within the settings directories for automatic creation and reloading
+    """
+    assert str(filename).endswith(".csv")
+    try:
+        settings.get("user.extra_settings_dirs")
+    except KeyError:
+        # Might not have loaded settings yet if this is called from a watch decorator.
+        app.register(
+            "ready",
+            lambda: track_csv_list(
+                filename, headers, default, is_spoken_form_first, private
+            ),
+        )
+
+        def decorator(fn: CallbackT) -> CallbackT:
+            pass
+
+        return decorator
+
+    core_path, paths = get_settings_csv_paths(filename, private)
+    for path in paths:
+        path.parent.mkdir(exist_ok=True)
+
+        if path == core_path:
+            write_csv_defaults(path, headers, default, is_spoken_form_first)
+        else:
+            write_csv_defaults(
+                path,
+                headers,
+                default,
+                is_spoken_form_first=is_spoken_form_first,
+            )
+
+    def decorator(fn: CallbackT) -> CallbackT:
+        if filename not in tracked_csvs:
+            tracked_csvs[filename] = TrackedCsv(
+                headers, is_spoken_form_first, private, callback_fn=fn
+            )
+        for path in paths:
+            reload_on_change(path, filename)
+
+    return decorator
+
+
+def get_settings_csv_paths(filename: str, private=False):
+    # Path for the file version that exists within communities settings folder and is always created
+    core_path = resolve_setting_file_path(filename, private)
+
+    # Join with any other settings directories the user may have set
+    user_extra_directories = get_setting_directories("user.extra_settings_dirs")
+    paths = [core_path] + [dir / filename for dir in user_extra_directories]
+    return core_path, paths
+
+
+def reload_on_change(path: Path, setting_csv_filename: str):
+    @resource.watch(str(path))
+    def on_update(_):
+        load_settings_values(setting_csv_filename)
+
+
+def load_settings_values(setting_csv_filename):
+    if setting_csv_filename not in tracked_csvs:
+        # Shouldn't ever happen, because to get here you should have been tracked, but if it does let's not crash.
+        return
+    entry = tracked_csvs[setting_csv_filename]
+    core_path, paths = get_settings_csv_paths(setting_csv_filename, entry.private)
+    data = {}
+    paths = [p for p in paths if p.exists()]
+    for path in paths:
+        with open(path, encoding="utf-8") as f:
+            settings_values = read_csv_list(
+                # This watcher callback receives the io for the changed file, but we want to reload all files that provide data for this setting
+                f,
+                entry.headers,
+                entry.is_spoken_form_first,
+                permit_no_entries=path != core_path,
+            )
+            data.update(settings_values)
+    entry.callback_fn(data)
+
+
 def read_csv_list(
-    f: IO, headers: tuple[str, str], is_spoken_form_first: bool = False
+    f: IO,
+    headers: tuple[str, str],
+    is_spoken_form_first: bool = False,
+    permit_no_entries=False,
 ) -> dict[str, str]:
-    rows = read_csv_rows(f, headers)
+    rows = read_csv_rows(f, headers, permit_no_entries)
     mapping = {}
     for row in rows:
         if len(row) == 0:
@@ -42,11 +147,13 @@ def read_csv_list(
     return mapping
 
 
-def read_csv_rows(f: IO, headers: tuple[str, ...]) -> list[list[str]]:
+def read_csv_rows(
+    f: IO, headers: tuple[str, ...], permit_no_entries=False
+) -> list[list[str]]:
     rows = list(csv.reader(f))
     if len(rows) == 0:
         warn_about_error(f"{f.name} is empty!")
-    elif len(rows) == 1:
+    elif len(rows) == 1 and not permit_no_entries:
         warn_about_error(f"{f.name} has only the header!")
     if len(rows) >= 1:
         actual_headers = rows[0]
@@ -67,6 +174,8 @@ def write_csv_defaults(
     is_spoken_form_first: bool = False,
 ) -> None:
     """Writes a dict of output: spoken form pairs to csv if the file doesn't exist. is_spoken_form_first swaps the order to spoken form: output."""
+    if default is None:
+        default = {}
     rows = []
     for key, value in default.items():
         if key == value:
@@ -90,26 +199,6 @@ def write_csv_default_rows(
         writer = csv.writer(file)
         writer.writerow(headers)
         writer.writerows(default)
-
-
-def track_csv_list(
-    filename: str,
-    headers: tuple[str, str],
-    default: Optional[dict[str, str]] = None,
-    is_spoken_form_first: bool = False,
-    private: bool = False,
-) -> DecoratorT:
-    assert filename.endswith(".csv")
-    path = resolve_setting_file_path(filename, private)
-    write_csv_defaults(path, headers, default, is_spoken_form_first)
-
-    def decorator(fn: CallbackT) -> CallbackT:
-        @resource.watch(str(path))
-        def on_update(f):
-            data = read_csv_list(f, headers, is_spoken_form_first)
-            fn(data)
-
-    return decorator
 
 
 def append_to_csv(filename: str, rows: dict[str, str], private: bool = False):

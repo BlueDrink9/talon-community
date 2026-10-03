@@ -9,7 +9,10 @@ from talon import Module, actions
 
 from .keys.symbols import symbols_for_create_spoken_forms
 from .numbers.numbers import digits_map, scales, teens, tens
-from .user_settings import track_csv_list
+from .user_settings import (
+    setting_directory_documentation,
+    track_csv_list,
+)
 
 mod = Module()
 
@@ -21,6 +24,19 @@ SYMBOLS_REGEX = "|".join(
 )
 FILE_EXTENSIONS_REGEX = r"^\b$"
 file_extensions = {}
+
+mod.setting(
+    "extra_settings_dirs",
+    type=str,
+    default=None,
+    desc=f"""
+    Additional directories to search for settings .csvs in. Can be relative to the Talon user folder, or absolute.
+    The contents of any default tracked csvs will be created unpopulated in all of the specified directories (if they don't already exist) then merged with existing settings lists.
+    Useful for storing per machine or per project words to replace, contacts, or file extensions, for example
+
+    {setting_directory_documentation}
+    """,
+)
 
 
 def update_regex():

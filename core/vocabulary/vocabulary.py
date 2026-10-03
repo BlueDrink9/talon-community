@@ -9,7 +9,11 @@ from typing import Sequence, Union  # noqa: UP035
 from talon import Context, Module, actions
 from talon.grammar import Phrase
 
-from ..user_settings import append_to_csv, needs_final_newline, track_csv_list
+from ..user_settings import (
+    append_to_csv,
+    needs_final_newline,
+    track_csv_list,
+)
 
 mod = Module()
 ctx = Context()

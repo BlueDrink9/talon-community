@@ -95,6 +95,10 @@ app: vscode
 
 @ctx.action_class("app")
 class AppActions:
+    def preferences():
+        """Show main settings window"""
+        actions.user.vscode("workbench.action.openGlobalSettings")
+
     # talon app actions
     def tab_open():
         actions.user.vscode("workbench.action.files.newUntitledFile")

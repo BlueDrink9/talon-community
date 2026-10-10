@@ -47,7 +47,7 @@ panel terminal: user.vscode("workbench.action.terminal.focus")
 focus editor: user.vscode("workbench.action.focusActiveEditorGroup")
 
 # Settings
-show settings: user.vscode("workbench.action.openGlobalSettings")
+show settings: app.preferences()
 show settings json: user.vscode("workbench.action.openSettingsJson")
 show settings folder: user.vscode("workbench.action.openFolderSettings")
 show settings folder json: user.vscode("workbench.action.openFolderSettingsFile")
